@@ -1,0 +1,43 @@
+{{if $module.config.show_hero !== false}}
+{{:assign hero_count=0}}
+{{if $module.config.hero_mode != "fixe"}}
+    {{:include file="./_hero_slides.html" capture="hero_slides" keep="hero_count"}}
+{{/if}}
+{{if $hero_count > 0}}
+<section class="gda-carousel{{if $hero_count == 1}} is-single{{/if}}{{if $module.config.hero_position == "right"}} gda-carousel--right{{/if}}" role="region" aria-roledescription="diaporama" aria-label="À la une" data-hero-carousel data-interval="{{$module.config.hero_interval|intval|or:6|max:3|min:30}}" data-autoplay="{{if $module.config.hero_autoplay !== false}}true{{else}}false{{/if}}">
+    <div class="gda-carousel__stage" data-carousel-stage>
+        {{$hero_slides|raw}}
+    </div>
+    {{if $hero_count > 1}}
+    <div class="gda-carousel__controls" data-carousel-controls hidden>
+        <div class="gda-carousel__buttons">
+            <button type="button" data-carousel-prev aria-label="Article précédent">←</button>
+            <button type="button" data-carousel-toggle>Pause</button>
+            <button type="button" data-carousel-next aria-label="Article suivant">→</button>
+        </div>
+        <div class="gda-carousel__dots" data-carousel-dots role="group" aria-label="Choisir un article"></div>
+        <p class="gda-carousel__sr" data-carousel-status aria-live="polite" aria-atomic="true"></p>
+    </div>
+    {{/if}}
+</section>
+{{else}}
+<section class="theme-hero gda-hero-static hero-{{$module.config.hero_position|or:"left"}}" aria-label="Présentation">
+    <div class="hero-copy"><p class="hero-eyebrow">{{$config.org_name}}</p>
+        <h2>{{$module.config.hero_title|or:"Cultivons ensemble la créativité"}}</h2>
+        <p>{{$module.config.hero_text|or:"Découvrez la vie de notre association, nos activités et nos dernières actualités."}}</p>
+        {{if $module.config.hero_page}}
+        {{#pages uri=$module.config.hero_page where="w.inherited_status = 2"}}<a class="hero-button" href="{{$url}}">{{$module.config.hero_button|or:"Découvrir l’association"}}</a>{{/pages}}
+        {{/if}}
+    </div>
+    <div class="gda-carousel__visual" data-hero-visual>
+        {{if $module.config.hero_image_url}}<img src="{{$module.config.hero_image_url}}" alt="" />{{/if}}
+    </div>
+</section>
+{{if $module.config.hero_mode != "fixe"}}
+    {{#restrict section="web" level="write"}}
+    <p class="gda-carousel__empty">Aucun article public publié dans la rubrique choisie. <a href="{{$root_uri}}m/theme_personnalise/config.html#diaporama">Configurer le diaporama</a>.</p>
+    {{/restrict}}
+{{/if}}
+{{/if}}
+<script src="{{$root_uri}}hero-slider.js?v=20261103-1" defer></script>
+{{/if}}

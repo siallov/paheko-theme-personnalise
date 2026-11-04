@@ -1,0 +1,14 @@
+{{:assign hero_count=0}}
+{{:assign hero_limit=$module.config.hero_slide_count|intval|or:5|max:1|min:12}}
+{{:assign hero_excerpt_length=$module.config.hero_excerpt_length|intval|or:240|max:80|min:1000}}
+{{if $module.config.hero_category_id|intval > 0}}
+    {{#articles id_parent=$module.config.hero_category_id|intval where="w.inherited_status = 2" future=false order="published DESC, id DESC" limit=$hero_limit}}
+        {{:assign hero_count="%d+1"|math:$hero_count}}
+        {{:include file="./_hero_slide.html" hero_article_id=$id hero_article_title=$title hero_article_html=$html hero_article_url=$url}}
+    {{/articles}}
+{{else}}
+    {{#articles parent=$module.config.home_category|or:"actualites" where="w.inherited_status = 2" future=false order="published DESC, id DESC" limit=$hero_limit}}
+        {{:assign hero_count="%d+1"|math:$hero_count}}
+        {{:include file="./_hero_slide.html" hero_article_id=$id hero_article_title=$title hero_article_html=$html hero_article_url=$url}}
+    {{/articles}}
+{{/if}}

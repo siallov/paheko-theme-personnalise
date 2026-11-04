@@ -1,0 +1,38 @@
+{{if !$page}}
+	{{:error message="Page not found"}}
+{{/if}}
+
+{{:include file="./_head.html" title=$page.title|remove_leading_number}}
+
+{{:include file="./_breadcrumbs.html" parent=$page.path}}
+
+<h1>{{$page.title|remove_leading_number}}</h1>
+
+<section class="subcategories">
+	{{#categories parent=$page.path order="title"}}
+	<ul>
+		<li><a href="{{$url}}">{{$title|remove_leading_number}}</a></li>
+	</ul>
+	{{/categories}}
+</section>
+
+{{if $page.html || $page.has_attachments}}
+	<article class="single article">
+		{{$page.html|raw}}
+
+		{{:include file="./_gallery.html" parent=$page.path}}
+		{{:include file="./_documents.html" parent=$page.path}}
+	</article>
+{{/if}}
+
+<section class="articles">
+	{{#articles parent=$page.path order="published DESC"}}
+	<article class="article">
+		<h3><a href="{{$url}}">{{$title|remove_leading_number}}</a></h3>
+		<h5>{{$published|date_long}}</h5>
+		<p>{{$html|raw|strip_tags|truncate:200}}</p>
+	</article>
+	{{/articles}}
+</section>
+
+{{:include file="./_foot.html"}}

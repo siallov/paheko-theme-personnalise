@@ -1,0 +1,27 @@
+{{:assign nav_article_paths=null}}
+{{if $module.config.hide_empty_categories === true}}
+{{#articles where="w.inherited_status = 2" future=false limit=100000}}{{:assign var="nav_article_paths.%d"|args:$id value=$path}}{{/articles}}
+{{/if}}
+<a href="{{$root_uri}}">Accueil</a>
+{{if $module.config.nav_mode == "custom"}}
+ {{#foreach from=$module.config.nav_links item="link"}}
+ {{if $link.enabled !== false}}
+  {{if $link.page|intval > 0}}
+   {{#pages where="w.id = :id AND w.inherited_status = 2" :id=$link.page|intval future=false}}
+   {{:include file="./_navigation_item.html" nav_id=$id nav_type=$type nav_path=$path nav_url=$url nav_title=$link.label}}
+   {{/pages}}
+  {{else}}<a href="{{$link.url}}">{{$link.label}}</a>{{/if}}
+ {{/if}}
+ {{/foreach}}
+{{else}}
+ {{if $module.config.menu_public_category|intval > 0}}
+ {{#pages id_parent=$module.config.menu_public_category|intval where="w.inherited_status = 2" future=false order="title"}}
+ {{:include file="./_navigation_item.html" nav_id=$id nav_type=$type nav_path=$path nav_url=$url nav_title=$title}}
+ {{/pages}}
+ {{else}}
+ {{#categories parent=null where="w.inherited_status = 2" order="title"}}
+ {{:include file="./_navigation_item.html" nav_id=$id nav_type=$type nav_path=$path nav_url=$url nav_title=$title}}
+ {{/categories}}
+ {{/if}}
+ {{if $module.config.contact_form === true}}<a href="{{$root_uri}}contact.html">Contact</a>{{/if}}
+{{/if}}

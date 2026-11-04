@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="utf-8" />
+	<title>{{if $title}}{{$title}} — {{/if}}{{$config.org_name}}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style type="text/css">
+	:root {
+		{{:assign color1=$module.config.color1|or:$config.color1|or:"#999999"|css_hex_extract_hsv}}
+		{{:assign color2=$module.config.color2|or:$config.color2|or:"#333333"|css_hex_extract_hsv}}
+		--first-color: {{if $module.config.hue1 !== null}}{{$module.config.hue1|intval}}{{else}}{{if $module.config.theme_style != "legacy"}}90{{else}}{{$color1.h|intval}}{{/if}}{{/if}};
+		--second-color: {{if $module.config.hue2 !== null}}{{$module.config.hue2|intval}}{{else}}{{if $module.config.theme_style != "legacy"}}24{{else}}{{$color2.h|intval}}{{/if}}{{/if}};
+	}
+
+{{if $module.config.theme_style == "custom"}}
+:root {
+ --visual-primary:{{$module.config.visual_primary|or:"#2e4b65"}};
+ --visual-on-primary:{{$module.config.visual_on_primary|or:"#ffffff"}};
+ --visual-accent:{{$module.config.visual_accent|or:"#b68f0f"}};
+ --visual-on-accent:{{$module.config.visual_on_accent|or:"#ffffff"}};
+ --visual-background:{{$module.config.visual_background|or:"#637c39"}};
+ --visual-surface:{{$module.config.visual_surface|or:"#faf9f3"}};
+ --visual-text:{{$module.config.visual_text|or:"#243326"}};
+ --visual-font:{{if $module.config.visual_font == "serif"}}Georgia,serif{{elseif $module.config.visual_font == "verdana"}}Verdana,sans-serif{{elseif $module.config.visual_font == "nunito"}}"Nunito Sans","Trebuchet MS",sans-serif{{elseif $module.config.visual_font == "trebuchet"}}"Trebuchet MS",Arial,sans-serif{{else}}Arial,sans-serif{{/if}};
+ --visual-size:{{$module.config.visual_size|intval|or:16|max:14|min:20}}px;
+ --visual-radius:{{$module.config.visual_radius|intval|max:0|min:24}}px;
+ --visual-spacing:{{$module.config.visual_spacing|intval|or:28|max:16|min:40}}px;
+}
+{{/if}}
+
+{{if $module.config.hero_height}}
+:root {
+ --hero-height:{{$module.config.hero_height|intval|max:220|min:650}}px;
+ --hero-text-track:{{$module.config.hero_ratio|intval|or:40}}fr;
+ --hero-image-track:{{if $module.config.hero_ratio == "60"}}40{{elseif $module.config.hero_ratio == "50"}}50{{else}}60{{/if}}fr;
+ --hero-copy-share:{{$module.config.hero_ratio|intval|or:40}}%;
+ --hero-fit:{{if $module.config.hero_fit == "cover"}}cover{{else}}contain{{/if}};
+}
+{{/if}}
+	</style>
+	{{if $gda_module}}
+	<link rel="stylesheet" href="{{$root_uri}}admin/static/admin.css" />
+	<script src="{{$root_uri}}admin/static/scripts/global.js" defer></script>
+	{{/if}}
+	<link rel="stylesheet" type="text/css" href="{{$root_uri}}default.css?h={{$version_hash}}" media="screen,projection,handheld" />
+	<link rel="stylesheet" type="text/css" href="{{$root_uri}}content.css?h={{$version_hash}}" media="all" />
+	<link rel="stylesheet" type="text/css" href="{{$root_uri}}print.css?h={{$version_hash}}" media="print" />
+	<link rel="alternate" type="application/atom+xml" title="{{$config.org_name}}" href="{{$root_uri}}atom.xml" />
+	<link rel="icon" type="image/png" href="{{$config.files.favicon}}" />
+	<meta property="og:title" content="{{if $title}}{{$title}} — {{/if}}{{$config.org_name}}" />
+	<meta property="og:site_name" content="{{$config.org_name}}" />
+
+	{{if $config.files.logo}}
+		<meta property="og:image" content="{{$config.files.logo}}" />
+	{{/if}}
+	
+	{{if $gda_module_css}}<link rel="stylesheet" href="{{$gda_module_css}}" />{{/if}}
+	<link rel="stylesheet" href="{{$root_uri}}personnalisation.css?h={{$version_hash}}&amp;theme=sobre-persistant-2" media="screen" />
+</head>
+
+<body class="{{if $module.config.visual_style == "sobre" || $module.config.theme_style == "sobre" || $module.config.visual_name == "Sobre - blanc et vert"}}visual-sobre {{/if}}{{if $module.config.hero_height}}hero-sized {{/if}}{{if $module.config.visual_style == "corail"}}visual-corail {{/if}}{{if $module.config.visual_style == "apeu" || $module.config.visual_style == "sobre"}}visual-apeu {{/if}}{{if $gda_module}}public gda-module-page {{/if}}{{if $gda_module_compact}}gda-module-compact {{/if}}theme-{{$module.config.theme_style|or:"nature"}} width-{{$module.config.site_width|or:"standard"}} columns-{{$module.config.news_columns|or:3}} layout-{{$module.config.layout|or:"2col"}} bg-{{$module.config.background|or:"white"}}">
+
+<main>
+
+<header class="main{{if $home}} home{{/if}}" style="position: relative;">
+{{if $logged_user}}
+	<nav class="admin" style="position: absolute; top: 8px; right: 12px; left: auto; margin: 0; z-index: 2;">
+		{{if $gda_module_compact}}{{:linkbutton href=$root_uri label="Accueil"}}{{/if}}
+		{{:linkbutton href="!" shape="user" label=$module.config.login_label|or:"Espace membre"}}
+		{{:linkbutton href="!logout.php" label="Déconnexion"}}
+		{{if !$gda_module}}
+		{{#restrict section="web" level="write"}}
+			{{if $page.id}}
+				{{:linkbutton href="!web/edit.php?id=%d"|args:$page.id shape="edit" label="Modifier cette page"}}
+				{{:linkbutton href="!web/?id=%d"|args:$page.id shape="eye" label="Gérer cette page"}}
+			{{else}}
+				{{:linkbutton href="!web/" shape="edit" label="Gérer le site web"}}
+			{{/if}}
+		{{/restrict}}
+		{{/if}}
+	</nav>
+{{elseif $module.config.show_login !== false}}
+	<nav class="admin login" style="position: absolute; top: 8px; right: 12px; left: auto; margin: 0; z-index: 2;">
+		{{if $gda_module_compact}}{{:linkbutton href=$root_uri label="Accueil"}}{{/if}}
+		{{:linkbutton href="!" label=$module.config.login_label|or:"Espace membre"}}
+	</nav>
+{{/if}}
+{{if !$gda_module_compact}}
+	<h1>
+		<a href="{{$root_uri}}">
+		{{if $config.files.logo}}
+			<img class="association-logo" src="{{$config.files.logo}}" alt="{{$config.org_name}}" />
+		{{else}}
+			<span>{{$config.org_name}}</span>
+		{{/if}}
+		</a>
+	</h1>
+
+	
+<article class="corail-contacts"><h3>{{$config.org_name}}</h3>{{if $module.config.contact_form === true}}<p><a href="{{$root_uri}}contact.html">Contact</a></p>{{/if}}</article>
+
+{{/if}}
+{{if $logged_user && !$gda_module_compact}}<nav class="header-modules" aria-label="Modules">{{#module name="petites_annonces"}}<span data-nav-module="show_petites_annonces"{{if $module.config.show_petites_annonces === false}} hidden{{/if}}>{{:linkbutton href=$public_url label="Les petites annonces"}}</span>{{/module}}{{#module name="permanences"}}<span data-nav-module="show_permanences"{{if $module.config.show_permanences === false}} hidden{{/if}}>{{:linkbutton href=$public_url label="Permanences"}}</span>{{/module}}{{#module name="trombinoscope"}}<span data-nav-module="show_trombinoscope"{{if $module.config.show_trombinoscope === false}} hidden{{/if}}>{{:linkbutton href=$public_url label="Trombinoscope"}}</span>{{/module}}</nav>{{/if}}
+</header>
+{{if !$gda_module_compact}}
+<nav class="main" aria-label="Navigation principale">
+<div class="theme-menu" data-nav-menu>{{:include file="./_navigation.html"}}</div>
+<!-- modifier pour masquer les petites annonces -->
+{{if $logged_user}}
+
+	{{#module name="petites_annonces"}}
+		<p class="booking-btn" data-nav-module="show_petites_annonces"{{if $module.config.show_petites_annonces === false}} hidden{{/if}}>
+			<a href="{{$public_url}}"><span></span><b>Les petites annonces</b></a>
+		</p>
+	{{/module}}
+{{/if}}
+	<!-- modifier pour masquer les réservations -->
+{{if $logged_user}}
+
+	{{#module name="bookings"}}
+		<p class="booking-btn" data-nav-module="show_bookings"{{if $module.config.show_bookings === false}} hidden{{/if}}>
+			<a href="{{$public_url}}"><span></span><b>Réservations</b></a>
+		</p>
+	{{/module}}
+{{/if}}	
+	
+<!-- modifier pour masquer les permanences -->
+{{if $logged_user}}
+
+	{{#module name="permanences"}}
+		<p class="booking-btn" data-nav-module="show_permanences"{{if $module.config.show_permanences === false}} hidden{{/if}}>
+			<a href="{{$public_url}}"><span></span><b>Permanences</b></a>
+		</p>
+	{{/module}}
+{{/if}}	
+
+<!-- modifier pour masquer le trombinoscope -->				
+{{if $logged_user}}
+
+{{#module name="trombinoscope"}}
+<p class="booking-btn" data-nav-module="show_trombinoscope"{{if $module.config.show_trombinoscope === false}} hidden{{/if}}>
+<a href="{{$public_url}}"><span></span><b>Trombinoscope</b></a>
+</p>
+{{/module}}
+{{/if}}
+
+	{{if $module.config.show_search !== false || $_GET.search}}
+	<form method="get" action="{{ $root_uri }}search.html" class="search-widget">
+		<p>
+			<input type="search" name="search" placeholder="Rechercher…" value="{{ $_GET.search }}" />
+			<input type="submit" value="&rarr;" title="Lancer la recherche" />
+		</p>
+	</form>
+	{{/if}}
+
+
+{{if $logged_user && $module.config.menu_member_category|intval > 0}}
+<div class="subcategories"><h2>Espace membre</h2></div>
+<menu class="subcategories">{{#pages id_parent=$module.config.menu_member_category|intval private=true order="title"}}<li><a href="{{$url}}">{{$title}}</a></li>{{/pages}}</menu>
+{{/if}}
+{{if $module.config.external_url}}<p><a href="{{$module.config.external_url}}">{{$module.config.external_label|or:"En savoir plus"}}</a></p>{{/if}}
+{{if $module.config.social_url}}<p><a href="{{$module.config.social_url}}">{{$module.config.social_label|or:"Réseau social"}}</a></p>{{/if}}
+
+	{{if $module.config.show_hours !== false}}
+	{{#module name="openings"}}
+	<article class="opening-hours">
+		{{:include file="/openings/_all.html"}}
+	</article>
+	{{/module}}
+	{{/if}}
+
+</nav>
+{{/if}}
+
+<section class="page{{if $gda_module}} gda-module gda-module-{{$gda_module_name}}{{/if}}">
+{{if $gda_module && $title}}<h1 class="gda-module-title">{{$title}}</h1>{{/if}}

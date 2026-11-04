@@ -1,0 +1,162 @@
+{{* This skeleton is used for sending emails in HTML *}}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style type="text/css">
+{{*
+	Warning! Email clients are bad at CSS.
+	So Paheko will parse the contents of this <style> tag
+	and apply all CSS rules in each element 'style' attribute!
+	Then this tag will be deleted.
+
+	Yes this means the produced HTML will look like shit,
+	but there is no other choice :(
+
+	For what CSS can be used, see https://www.caniemail.com
+	Warning: flex/grids cannot be used, grid in content should
+	be converted to <table role="presentation" (TODO)
+	https://github.com/hteumeuleu/email-guidelines
+*}}
+
+/* CSS reset for margin and padding */
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6,
+pre, form, fieldset, input, textarea, p, blockquote, th, td,
+figure, article, aside, section, header, footer, img {
+	padding: 0;
+	margin: 0;
+	border: 0; /* Required for laposte.net */
+}
+
+#main {
+	max-width: 700px;
+	margin: 0 auto;
+	margin-bottom: 30px;
+}
+#content {
+	max-width: 700px;
+	margin: 0 auto;
+}
+a {
+	color: #009;
+	text-decoration: underline;
+}
+.header {
+	padding: 0px 10px 20px 10px;
+	border-radius: 1em;
+	overflow: auto;
+	border: 1px solid #ccc;
+	border-color: rgba({{if $config.color2}}{{$config.color2|css_hex_to_rgb}}{{else}}100, 100, 100{{/if}}, 0.5);
+	border-bottom-width: 7px;
+	padding: .8em;
+	background: #fff;
+	color: #000;
+}
+.header h2 {
+	margin-bottom: 5px;
+	border-bottom: 1px solid rgba({{if $config.color1}}{{$config.color1|css_hex_to_rgb}}{{else}}100, 100, 100{{/if}}, 0.5);
+	font-size: 20px;
+}
+.header h5 {
+	font-size: 12px;
+	font-weight: normal;
+	margin: 0;
+}
+.header a, .header h2 {
+	color: rgb({{if $config.color1}}{{$config.color1|css_hex_to_rgb}}{{else}}100, 100, 255{{/if}});
+}
+.header img {
+	float: right;
+	max-height: 75px;
+	border-left: 10px solid #fff;
+	background: #fff;
+}
+.web-content {
+	border-radius: 10px;
+	max-width: 680px;
+	margin: 10px auto;
+}
+{{* Include the contents of the 'content.css' file here, so that Markdown text appears the same as in the web pages *}}
+{{:include file="./content.css"}}
+{{* Override some of the rules, as some things are not handled by the CSS parser, such as ::before *}}
+.web-content blockquote {
+	margin-left: 1em;
+	border-left: 5px solid BurlyWood;
+	padding: 1em;
+}
+.web-content .toc ol {
+	counter-reset: unset;
+	list-style: decimal;
+	margin-left: 2em;
+	color: #666;
+}
+.web-content .web-grid-legacy {
+	display: block;
+	text-align: center;
+	margin-bottom: 1em;
+}
+.web-content .web-grid-legacy article {
+	display: inline-block;
+	vertical-align: top;
+	min-width: 150px;
+	text-align: center;
+	margin: 1%;
+}
+.web-content .web-grid-legacy article p {
+	margin: 0;
+}
+</style>
+<style type="text/css">
+@media screen and (max-width: 450px) {
+	.web-content .web-grid-legacy article {
+		width: auto !important;
+		display: block !important;
+		margin: 1em 0 !important;
+	}
+}
+.pko-preview .web-content .web-grid-legacy article {
+	width: auto !important;
+	display: block !important;
+	margin: 1em 0 !important;
+}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<base target="_blank" />
+</head>
+<body>
+
+{{* This is the email preheader, what will be seen below the subject line in some email clients *}}
+{{* escape:'entities' is important: https://github.com/hteumeuleu/email-bugs/issues/41#issuecomment-1321464561 }}
+<span style="display: none !important; visibility: hidden; mso-hide: all; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">{{$html|strip_tags|truncate:130:"…":true|escape:'entities'}}{{* Add some spacing after pre-header text just in case it is too short *}}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</span>
+
+<div id="main">
+
+	<div class="header">
+		{{if $config.files.logo}}
+			<img src="{{$config.files.logo}}&email-150px" alt="{{$config.org_name}}" class="logo" />
+		{{/if}}
+		<h2>{{$config.org_name}}</h2>
+		<h5>
+			{{if $site_url}}
+				Site web&nbsp;: <a href="{{$site_url}}" target="_blank">{{$site_url|regexp_replace:'!^https?://(.*?)/?$!':'$1'}}</a>
+			{{/if}}
+			{{if $config.org_address_public|or:$config.org_address}}
+				<br />{{$config.org_address_public|or:$config.org_address}}
+			{{/if}}
+			{{if $config.org_phone}}
+				<br />Téléphone&nbsp;: <a href="tel:{{$config.org_phone}}">{{$config.org_phone}}</a>
+			{{/if}}
+		</h5>
+		</div>
+	</div>
+
+	<div id="content">
+		{{* The real email content is in the $html variable. Don't delete this or the email will be empty! *}}
+		{{$html|raw}}
+	</div>
+
+</div>
+
+{{* The unsubscribe link will be automatically added to the message. It's not possible to remove or change it. *}}
+</body>
+</html>

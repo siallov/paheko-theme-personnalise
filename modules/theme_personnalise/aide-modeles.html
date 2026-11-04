@@ -1,0 +1,193 @@
+{{:admin_header title="Aide — Atelier de modèles" layout="public"}}
+<p><a href="{{$module.url}}config.html#atelier-ambiances">← Retour à l’Atelier de modèles</a></p>
+<article style="max-width:900px"><pre style="white-space:pre-wrap;font:16px/1.6 system-ui,sans-serif">AIDE — IMPORTER ET CRÉER UN MODÈLE JSON
+Module Site web — Thème personnalisé
+
+IMPORTER UN MODÈLE
+1. Ouvrez la configuration du site web, puis l’Atelier de modèles.
+2. Cliquez sur « Importer un modèle » et choisissez un fichier .json.
+3. Vérifiez le rendu avec Ordinateur, Tablette et Mobile.
+4. « Enregistrer une variante » conserve votre création sans modifier le site.
+   « Appliquer au site » publie les réglages de la page.
+L’import seul ne publie rien. Avant d’appliquer, vérifiez aussi les autres
+réglages de la page : le bouton Appliquer les enregistre également.
+
+EXPORTER OU PARTAGER
+Cliquez sur « Exporter le modèle ». Le fichier décrit les réglages actuellement
+présents dans l’éditeur, y compris un essai non publié. Il peut être importé
+sur un autre site équipé de cette extension et d’une version compatible.
+Le thème web natif de Paheko ne possède pas cet import spécifique.
+
+CE QUI EST TRANSPORTÉ
+Couleurs, typographie, arrondis, espacements, présentation, largeur du site,
+colonnes, teintes et dimensions/proportions du bandeau.
+Les articles, images, logo, comptes, rubriques, identifiants de rubrique,
+liens de navigation et contenus du diaporama ne sont pas transportés.
+
+CRÉER SON PROPRE FICHIER
+Le plus simple : choisissez un modèle, ajustez-le dans l’atelier puis exportez.
+Pour une modification manuelle, dupliquez exemple-sobre.json et ouvrez-le avec
+un éditeur de texte. Enregistrez en UTF-8 avec l’extension .json.
+Le fichier doit faire au maximum 64 Ko.
+Conservez format = &quot;paheko-ambiance&quot;, version = 1 et l’objet appearance.
+Toutes les propriétés de l’exemple sont nécessaires. N’en ajoutez pas.
+Le JSON n’accepte ni commentaires ni virgule après le dernier élément.
+
+COMPRENDRE LES RÉGLAGES DU MODÈLE (appearance)
+
+« appearance » signifie « apparence ». C’est le groupe de réglages qui décrit
+l’aspect du site. Les noms anglais sont nécessaires dans le fichier JSON ;
+les explications ci-dessous indiquent ce qu’ils changent à l’écran.
+Vous pouvez aussi régler le modèle dans l’atelier, puis l’exporter : il n’est
+pas nécessaire de modifier du code.
+
+NOM ET TYPE DE PRÉSENTATION
+
+name — Le nom de votre création.
+Exemple : &quot;Mon modele vert&quot;. C’est le nom qui permet de la retrouver.
+Utilisez 1 à 40 lettres, chiffres, espaces, tirets (-) ou traits de
+soulignement (_). Les accents sont acceptés. Évitez les apostrophes.
+
+mode — La famille de réglages utilisée.
+Pour une création avec vos propres couleurs, conservez &quot;custom&quot;.
+&quot;nature&quot; et &quot;sobre&quot; désignent les présentations prédéfinies ; &quot;legacy&quot;
+correspond à la présentation classique. Ce champ est un choix technique :
+il ne remplace pas le nom du modèle.
+
+style — La disposition visuelle qui sert de base à votre modèle.
+&quot;standard&quot; : présentation générale du thème personnalisé.
+&quot;apeu&quot; : présentation utilisée notamment par Océan et Lavande.
+&quot;corail&quot; : présentation du modèle Corail épuré.
+&quot;sobre&quot; : présentation Sobre, avec les petits raccourcis des modules dans
+le bandeau qui reste visible pendant le défilement.
+Exemple : conservez &quot;sobre&quot; si vous changez ses couleurs mais souhaitez
+conserver sa disposition. Les modules doivent être installés et visibles
+pour que leurs raccourcis apparaissent.
+
+COULEURS
+
+primary — La couleur de fond des boutons principaux.
+Exemple : &quot;#e5ece5&quot; donne un vert très clair.
+on_primary — La couleur du texte écrit sur ce fond.
+Exemple : &quot;#24432e&quot; donne un vert foncé, lisible sur le vert clair.
+Ces deux valeurs fonctionnent ensemble : évitez un texte clair sur fond clair.
+
+accent — La couleur qui met certains éléments en évidence, par exemple
+un bouton du bandeau ou un détail du modèle.
+on_accent — La couleur du texte placé sur cette couleur d’accent.
+Les endroits concernés peuvent varier selon le style choisi.
+
+background — La couleur de fond générale du modèle.
+Exemple : &quot;#f5f7f3&quot; donne un fond presque blanc, légèrement vert.
+surface — La couleur des zones qui portent le contenu, comme les blocs
+ou les cartes. &quot;#ffffff&quot; correspond au blanc.
+text — La couleur principale des textes. Choisissez une couleur qui reste
+bien visible sur les couleurs background et surface.
+
+Comment lire une couleur ?
+Chaque couleur s’écrit avec # puis six caractères : chiffres de 0 à 9 ou
+lettres de A à F. C’est le format « hexadécimal » utilisé par les sites web.
+Exemples : &quot;#ffffff&quot; = blanc ; &quot;#000000&quot; = noir ; &quot;#24432e&quot; = vert foncé.
+Le plus simple est de choisir une couleur dans l’atelier puis d’exporter.
+Les noms comme &quot;vert&quot; ou &quot;blanc&quot; ne sont pas acceptés dans ces champs JSON.
+
+TEXTE, ARRONDIS ET ESPACEMENT
+
+font — La forme des lettres (la police de caractères).
+&quot;sans&quot; : lettres simples, sans petites terminaisons, comme Arial.
+&quot;serif&quot; : lettres avec des terminaisons, comme Georgia.
+&quot;verdana&quot; : police Verdana, assez large et lisible.
+&quot;trebuchet&quot; : police Trebuchet MS, aux formes plus souples.
+&quot;nunito&quot; : police arrondie ; une police de remplacement est utilisée
+si elle n’est pas disponible.
+
+size — La taille de base du texte, de 14 à 20 pixels.
+Un pixel est une petite unité de mesure de l’écran. Plus le nombre est
+élevé, plus le texte est grand. Exemple : 16 est un bon point de départ.
+Les titres gardent leurs propres proportions.
+
+radius — L’arrondi des coins, de 0 à 24 pixels.
+0 = coins droits ; 6 = arrondi discret ; 20 = coins très arrondis.
+Ce réglage concerne les éléments prévus par le style choisi.
+
+spacing — L’espace autour des contenus, de 16 à 40 pixels.
+16 donne une présentation plus compacte ; 40 donne plus d’air.
+Ce n’est pas l’espace entre les lettres.
+
+BANDEAU DE PRÉSENTATION
+
+Les réglages hero concernent le grand bandeau de présentation ou diaporama,
+pas la barre qui contient le logo et les boutons du compte.
+
+hero_height — La hauteur du grand bandeau, de 220 à 650 pixels.
+Exemple : 350 donne un bandeau de hauteur moyenne. Une grande valeur prend
+plus de place à l’écran. Le rendu s’adapte aux petits écrans.
+
+hero_ratio — La place réservée au texte par rapport à l’image.
+&quot;40&quot; : texte 40 % / image 60 %.
+&quot;50&quot; : texte et image occupent chacun la moitié.
+&quot;60&quot; : texte 60 % / image 40 %.
+Exemple : choisissez &quot;40&quot; pour mettre davantage la photo en valeur.
+Sur mobile, les deux parties peuvent se placer l’une sous l’autre.
+
+hero_fit — La façon de faire entrer l’image dans sa zone.
+&quot;cover&quot; : remplit la zone ; des bords de l’image peuvent être coupés.
+&quot;contain&quot; : montre l’image entière ; des espaces peuvent rester autour.
+Pour une affiche contenant du texte, &quot;contain&quot; évite de couper les mots.
+
+ORGANISATION ET LARGEUR DU SITE
+
+layout — L’organisation générale sur grand écran.
+&quot;1col&quot; : présentation classique sur une colonne.
+&quot;2col&quot; : présentation classique sur deux colonnes.
+&quot;wide&quot; : présentation large sur deux colonnes.
+Sur petit écran, le contenu s’adapte à une seule colonne. Certains styles
+peuvent imposer leur propre organisation.
+
+site_width — La largeur disponible pour le site.
+&quot;standard&quot; : largeur habituelle ; &quot;large&quot; : utilise davantage la largeur
+de l’écran. Ce réglage ne change pas le nombre de colonnes à lui seul.
+
+news_columns — Le nombre de colonnes pour les actualités sur grand écran.
+&quot;2&quot; : deux cartes côte à côte ; &quot;3&quot; : trois cartes côte à côte.
+Sur mobile, elles se réorganisent pour rester lisibles.
+
+hue1 et hue2 — Deux teintes de référence de la présentation classique.
+Ce sont des nombres entre 0 et 360, comme une position sur un cercle de
+couleurs : 0 = rouge, 120 = vert, 240 = bleu, 360 revient au rouge.
+Ils servent notamment aux fonds et accents classiques. Avec un modèle
+personnalisé, les couleurs écrites en #RRGGBB peuvent prendre le dessus.
+Pour commencer, gardez les valeurs de votre export.
+
+site_background — La manière de composer le fond du site.
+&quot;gradient&quot; : dégradé entre les deux couleurs de référence.
+&quot;white_gradient&quot; : dégradé d’une couleur vers le blanc.
+&quot;white&quot; : blanc associé à la couleur primaire.
+&quot;gray&quot; : blanc et gris.
+&quot;all_white&quot; : fond tout blanc.
+&quot;dark&quot; : fond sombre.
+Le résultat dépend aussi du style : certains modèles imposent leur fond.
+
+À ne pas confondre : background donne une couleur précise (ex. &quot;#f5f7f3&quot;) ;
+site_background choisit un type de fond (ex. &quot;all_white&quot;).
+
+CONSEIL POUR UN PREMIER ESSAI
+Dupliquez un export, changez son nom et une ou deux couleurs seulement,
+puis importez-le et vérifiez les trois aperçus avant d’appliquer au site.
+Ne mettez pas ces explications dans le JSON : ce format n’accepte pas les
+commentaires. Conservez les clés anglaises et toutes les propriétés.
+
+EN CAS D’ERREUR
+« Format ou version non reconnu » : utilisez un export de cette extension
+ou le fichier exemple fourni, pas un export JSON d’un autre outil.
+« Propriétés non reconnues » : supprimez les clés ajoutées.
+« Couleur invalide » : utilisez six chiffres hexadécimaux précédés de #.
+« Dimension/Choix invalide » : vérifiez les valeurs autorisées ci-dessus.
+« Nom invalide » : vérifiez la longueur et les caractères du nom.
+Si le contraste est insuffisant, utilisez le contrôle de lisibilité de
+l’atelier et sa correction proposée avant de publier.
+
+L’exemple Sobre nécessite la version de l’extension prenant en charge le
+style &quot;sobre&quot; (mise à jour du 4 novembre 2026 ou ultérieure).
+</pre></article>
+{{:admin_footer}}

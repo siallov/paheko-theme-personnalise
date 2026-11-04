@@ -1,0 +1,9 @@
+{{* Cadre commun du site : le module appelant conserve son contexte. *}}
+{{:assign gda_kind=$module.name}}
+{{:assign gda_compact=false}}
+{{if $gda_kind == "trombinoscope" || $gda_kind == "petites_annonces"}}{{:assign gda_compact=true}}{{/if}}
+{{:assign gda_css=$module.url|cat:"style.css"}}
+{{#module name="theme_personnalise"}}
+    {{:assign var="gda_theme" config=$config}}
+{{/module}}
+{{:include file="/theme_personnalise/_head.html" root_uri=$root_url module=$gda_theme gda_module=true gda_module_compact=$gda_compact gda_module_name=$gda_kind gda_module_css=$gda_css title=$title page=null home=false}}

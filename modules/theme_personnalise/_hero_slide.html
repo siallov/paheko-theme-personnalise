@@ -1,0 +1,13 @@
+<div class="theme-hero gda-carousel__slide hero-{{$module.config.hero_position|or:"left"}}" role="group" aria-roledescription="diapositive" aria-label="{{$hero_count}}"{{if $hero_count != 1}} aria-hidden="true" inert{{/if}}>
+    <div class="hero-copy">
+        <p class="hero-eyebrow">{{$config.org_name}}</p>
+        <h2><a href="{{$hero_article_url}}">{{$hero_article_title|remove_leading_number}}</a></h2>
+        <p class="gda-carousel__excerpt">{{$hero_article_html|regexp_replace:'!</?(?:p|div|h[1-6]|li|ul|ol|section|article|blockquote|br)\b[^>]*>!i':" "|strip_tags|replace:'&amp;':'&'|replace:'&nbsp;':' '|trim|truncate:$hero_excerpt_length}}</p>
+        <a class="hero-button" href="{{$hero_article_url}}">{{$module.config.hero_button|or:"Lire l’article"}}</a>
+    </div>
+    <div class="gda-carousel__visual" data-hero-visual>
+        {{#images id_page=$hero_article_id order="name" limit=1}}
+        <img src="{{$large_url|or:$url}}" alt="" decoding="async" {{if $hero_count == 1}}fetchpriority="high"{{else}}loading="lazy"{{/if}} />
+        {{/images}}
+    </div>
+</div>

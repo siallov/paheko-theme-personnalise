@@ -1,0 +1,57 @@
+{{:include file="./_head.html" home=true}}
+
+{{:include file="./_hero.html"}}
+
+{{if $module.config.show_hours !== false}}
+{{#module name="openings"}}
+	<article class="opening-next">
+		{{:include file="/openings/_next_opening.html"}}
+	</article>
+	<article class="opening-hours">
+		{{:include file="/openings/_all.html"}}
+	</article>
+{{/module}}
+{{/if}}
+
+{{if $module.config.home_sticky_uri}}
+	{{#pages uri=$module.config.home_sticky_uri assign="sticky"}}
+		{{:assign hide_date=true}}
+	{{/pages}}
+{{/if}}
+
+{{if !$sticky}}
+	{{#articles future=false parent=$module.config.home_category|or:"actualites" order="published DESC" limit=1 assign="sticky"}}
+	{{/articles}}
+
+{{/if}}
+
+{{if $sticky}}
+	<section class="articles main">
+		<article>
+			<h1><a href="{{ $sticky.url }}">{{ $sticky.title }}</a></h1>
+			{{if !$hide_date}}
+			<p class="publication-date">{{ $sticky.published|relative_date }}</p>
+			{{/if}}
+			{{ $sticky.html|raw }}
+		</article>
+	</section>
+{{/if}}
+
+{{if $module.config.show_news !== false}}
+<div class="theme-news">
+{{#articles future=false parent=$module.config.home_category|or:"actualites" order="published DESC" limit=$module.config.news_count|intval|or:6}}
+{{if $id != $sticky.id}}
+<section class="articles">
+	<article>
+		<h3><a href="{{ $url }}">{{ $title }}</a></h3>
+		<p class="publication-date">{{ $published|relative_date }}</p>
+		<p>{{ $html|regexp_replace:'!</?(?:p|div|h[1-6]|li|ul|ol|section|article|blockquote|br)\b[^>]*>!i':" "|strip_tags|trim|truncate:200 }}</p>
+	</article>
+</section>
+{{/if}}
+{{/articles}}
+
+</div>
+{{/if}}
+
+{{:include file="./_foot.html"}}

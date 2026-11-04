@@ -1,0 +1,10 @@
+{{:assign nav_has_content=true}}
+{{if $module.config.hide_empty_categories === true && $nav_type == 1}}
+ {{:assign nav_has_content=false}}
+ {{:assign nav_prefix=$nav_path|cat:"/"}}
+ {{:assign nav_prefix_length=$nav_prefix|strlen}}
+ {{#foreach from=$nav_article_paths item="article_path"}}
+ {{if $article_path|substr:0:$nav_prefix_length == $nav_prefix}}{{:assign nav_has_content=true}}{{:break}}{{/if}}
+ {{/foreach}}
+{{/if}}
+{{if $nav_has_content}}<a href="{{$nav_url}}">{{$nav_title}}</a>{{/if}}

@@ -1,0 +1,3 @@
+{{:assign gda_compact=false}}
+{{if $module.name == "trombinoscope" || $module.name == "petites_annonces"}}{{:assign gda_compact=true}}{{/if}}
+{{:include file="/theme_personnalise/_foot.html" root_uri=$root_url gda_module_compact=$gda_compact}}

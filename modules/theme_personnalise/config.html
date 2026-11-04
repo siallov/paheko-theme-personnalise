@@ -1,0 +1,489 @@
+{{:admin_header title="Configuration du site web"}}
+
+{{:assign var="active_fields" 0="visual_style" 1="visual_slot" 2="visual_name" 3="visual_primary" 4="visual_accent" 5="visual_background" 6="visual_surface" 7="visual_text" 8="visual_on_primary" 9="visual_on_accent" 10="visual_font" 11="visual_radius" 12="visual_spacing" 13="visual_size" 14="hero_mode" 15="hero_category_id" 16="hero_slide_count" 17="hero_interval" 18="hero_excerpt_length" 19="hero_autoplay" 20="theme_style" 21="hero_title" 22="hero_text" 23="hero_button" 24="hero_page" 25="hero_image_url" 26="login_label" 27="menu_public_category" 28="menu_member_category" 29="external_url" 30="external_label" 31="social_url" 32="social_label" 33="hero_position" 34="home_category" 35="news_count" 36="news_columns" 37="site_width" 38="show_hero" 39="show_news" 40="color1" 41="color2" 42="hue1" 43="hue2" 44="layout" 45="background" 46="show_search" 47="show_hours" 48="show_bookings" 49="show_address" 50="show_email" 51="show_phone" 52="show_marker" 53="contact_form" 54="show_login" 55="home_sticky_uri" 56="hero_height" 57="hero_ratio" 58="hero_fit" 59="nav_mode" 60="nav_links" 61="hide_empty_categories" 62="show_petites_annonces" 63="show_permanences" 64="show_trombinoscope"}}
+{{:assign settings_saved=false}}
+{{:assign settings_result="applied"}}
+
+{{#form}}
+{{if $_POST.action != "variant" && $_POST.action != "apply" && $_POST.action != "restore"}}{{:error message="Action inconnue."}}{{/if}}
+{{:assign active_snapshot=null}}
+{{#foreach from=$active_fields item="setting"}}{{:assign var="active_snapshot.%s"|args:$setting from="module.config.%s"|args:$setting}}{{/foreach}}
+{{if $_POST.action == "restore"}}
+ {{if !$module.config.previous_config}}{{:error message="Aucun modèle précédent à rétablir."}}{{/if}}
+ {{:assign restore_config=$module.config.previous_config}}
+ {{:assign var="restore_config.previous_config" value=$active_snapshot}}
+ {{:assign var="restore_config.visual_presets" value=$module.config.visual_presets}}
+ {{:assign var="restore_rows.0" value=$restore_config}}
+ {{:save key="config" from=$restore_rows}}
+ {{:assign settings_result="restored"}}
+{{else}}
+	{{:assign uri=null}}
+	{{if $_POST.home_sticky_uri|trim}}
+		{{:assign uri=$_POST.home_sticky_uri|trim|regexp_replace:'!^.*?([a-zA-Z0-9_-]+)$!':"$1"}}
+		{{#pages uri=$uri}}
+		{{else}}
+			{{:error message="Cette page n'existe pas ou est en brouillon : %s"|args:$uri}}
+		{{/pages}}
+	{{/if}}
+
+	{{:assign var="checkboxes.hide_empty_categories" value=null}}
+{{:assign var="checkboxes.show_petites_annonces" value=null}}
+{{:assign var="checkboxes.show_permanences" value=null}}
+{{:assign var="checkboxes.show_trombinoscope" value=null}}
+	{{:assign var="checkboxes.hero_autoplay" value=null}}
+	{{:assign var="checkboxes.show_hero" value=null}}
+	{{:assign var="checkboxes.show_news" value=null}}
+	{{:assign var="checkboxes.show_search" value=null}}
+	{{:assign var="checkboxes.show_hours" value=null}}
+	{{:assign var="checkboxes.show_bookings" value=null}}
+	{{:assign var="checkboxes.show_address" value=null}}
+	{{:assign var="checkboxes.show_email" value=null}}
+	{{:assign var="checkboxes.show_phone" value=null}}
+	{{:assign var="checkboxes.show_marker" value=null}}
+	{{:assign var="checkboxes.contact_form" value=null}}
+	{{:assign var="checkboxes.show_login" value=null}}
+
+	{{#foreach from=$checkboxes key="name"}}
+		{{:assign var="present" from="_POST.%s_present"|args:$name}}
+		{{:assign var="value" from="_POST.%s"|args:$name}}
+		{{if $present}}
+			{{:assign var="checkboxes.%s"|args:$name value=$value|boolval}}
+		{{/if}}
+	{{/foreach}}
+
+
+ {{if $_POST.news_count|intval < 1 || $_POST.news_count|intval > 12}}
+ {{:error message="Le nombre d’actualités doit être compris entre 1 et 12."}}
+ {{/if}}
+	
+    {{if $_POST.hero_mode != "articles" && $_POST.hero_mode != "fixe"}}
+        {{:error message="Choisissez une bannière fixe ou un diaporama d’articles."}}
+    {{/if}}
+    {{if $_POST.hero_slide_count|intval < 1 || $_POST.hero_slide_count|intval > 12}}
+        {{:error message="Le diaporama doit contenir entre 1 et 12 articles."}}
+    {{/if}}
+    {{if $_POST.hero_interval|intval < 3 || $_POST.hero_interval|intval > 30}}
+        {{:error message="Le délai de défilement doit être compris entre 3 et 30 secondes."}}
+    {{/if}}
+    {{if $_POST.hero_excerpt_length|intval < 80 || $_POST.hero_excerpt_length|intval > 1000}}
+        {{:error message="La longueur de l’extrait doit être comprise entre 80 et 1000 caractères."}}
+    {{/if}}
+    {{if $_POST.hero_category_id|intval < 0}}
+        {{:error message="Rubrique du diaporama invalide."}}
+    {{elseif $_POST.hero_category_id|intval > 0}}
+        {{#categories where="w.id = :category AND w.inherited_status = 2" :category=$_POST.hero_category_id|intval}}
+        {{else}}{{:error message="La rubrique choisie doit être publique et publiée."}}{{/categories}}
+    {{/if}}
+
+
+{{#foreach from=$_POST key="url_key" item="url_value"}}
+{{if $url_key == "external_url" || $url_key == "social_url" || $url_key == "hero_image_url"}}
+{{if $url_value|trim && !$url_value|trim|regexp_match:'!^https?://[^\s]+$!i'}}{{:error message="Les adresses des liens et images doivent commencer par https:// ou http://."}}{{/if}}
+{{/if}}
+{{/foreach}}
+{{if $_POST.menu_public_category|intval > 0}}{{#categories where="w.id = :id AND w.inherited_status = 2" :id=$_POST.menu_public_category|intval}}{{else}}{{:error message="La rubrique du menu public doit être publique."}}{{/categories}}{{/if}}
+
+
+{{if $_POST.visual_slot|intval < 1 || $_POST.visual_slot|intval > 8}}{{:error message="Choisissez un emplacement de modèle entre 1 et 8."}}{{/if}}
+{{if !$_POST.visual_name|trim|regexp_match:'!^[\pL\pN _-]{1,40}$!u'}}{{:error message="Le nom du modèle doit contenir 1 à 40 lettres, chiffres, espaces, tirets ou traits de soulignement."}}{{/if}}
+{{#foreach from=$_POST key="color_key" item="color_value"}}
+{{if $color_key == "visual_primary" || $color_key == "visual_accent" || $color_key == "visual_background" || $color_key == "visual_surface" || $color_key == "visual_text" || $color_key == "visual_on_primary" || $color_key == "visual_on_accent"}}
+{{if !$color_value|regexp_match:'!^#[0-9a-fA-F]{6}$!'}}{{:error message="Une couleur du modèle est invalide."}}{{/if}}
+{{/if}}{{/foreach}}
+{{if $_POST.visual_font != "sans" && $_POST.visual_font != "serif" && $_POST.visual_font != "verdana" && $_POST.visual_font != "trebuchet" && $_POST.visual_font != "nunito"}}{{:error message="Police invalide."}}{{/if}}
+{{if $_POST.visual_radius|intval < 0 || $_POST.visual_radius|intval > 24 || $_POST.visual_spacing|intval < 16 || $_POST.visual_spacing|intval > 40 || $_POST.visual_size|intval < 14 || $_POST.visual_size|intval > 20}}{{:error message="Les dimensions du modèle sont invalides."}}{{/if}}
+{{if $_POST.visual_style && $_POST.visual_style != "standard" && $_POST.visual_style != "apeu" && $_POST.visual_style != "corail" && $_POST.visual_style != "sobre"}}{{:error message="Présentation du modèle invalide."}}{{/if}}
+
+{{if $_POST.theme_style != "nature" && $_POST.theme_style != "sobre" && $_POST.theme_style != "custom" && $_POST.theme_style != "legacy"}}{{:error message="Un choix de présentation est invalide (theme_style)."}}{{/if}}
+{{if $_POST.layout != "1col" && $_POST.layout != "2col" && $_POST.layout != "wide"}}{{:error message="Un choix de présentation est invalide (layout)."}}{{/if}}
+{{if $_POST.site_width != "standard" && $_POST.site_width != "large"}}{{:error message="Un choix de présentation est invalide (site_width)."}}{{/if}}
+{{if $_POST.news_columns != "2" && $_POST.news_columns != "3"}}{{:error message="Un choix de présentation est invalide (news_columns)."}}{{/if}}
+{{if $_POST.background != "gradient" && $_POST.background != "white_gradient" && $_POST.background != "white" && $_POST.background != "gray" && $_POST.background != "all_white" && $_POST.background != "dark"}}{{:error message="Un choix de présentation est invalide (background)."}}{{/if}}
+{{if $_POST.hero_height|intval < 220 || $_POST.hero_height|intval > 650}}{{:error message="La hauteur du bandeau doit être comprise entre 220 et 650 pixels."}}{{/if}}
+{{if $_POST.hero_ratio != "40" && $_POST.hero_ratio != "50" && $_POST.hero_ratio != "60"}}{{:error message="Proportions du bandeau invalides."}}{{/if}}
+{{if $_POST.hero_fit != "contain" && $_POST.hero_fit != "cover"}}{{:error message="Choix de cadrage invalide."}}{{/if}}
+{{if $_POST.nav_mode != "auto" && $_POST.nav_mode != "custom"}}{{:error message="Mode de navigation invalide."}}{{/if}}
+{{:assign nav_links=null}}
+{{#foreach count=8 key="nav_index"}}
+ {{:assign nav_number="%d+1"|math:$nav_index}}
+ {{:assign var="nav_label" from="_POST.nav_label_%d"|args:$nav_number}}
+ {{:assign var="nav_url" from="_POST.nav_url_%d"|args:$nav_number}}
+ {{:assign var="nav_page" from="_POST.nav_page_%d"|args:$nav_number}}
+ {{:assign var="nav_enabled" from="_POST.nav_enabled_%d"|args:$nav_number}}
+ {{if $nav_label|trim || $nav_url|trim}}
+  {{if !$nav_label|trim || $nav_label|strlen > 80}}{{:error message="Chaque lien doit avoir un libellé de 1 à 80 caractères."}}{{/if}}
+  {{if !$nav_url|trim|regexp_match:'~^(https?://[^\s]+|/(?!/)[^\s]*)$~i'}}{{:error message="Un lien doit utiliser une adresse interne commençant par / ou une adresse HTTP(S)."}}{{/if}}
+  {{if $nav_page|intval > 0}}
+   {{#pages where="w.id = :id AND w.inherited_status = 2" :id=$nav_page|intval future=false}}{{:assign nav_url=$url}}{{else}}{{:error message="Une page sélectionnée n’est plus publique ou publiée."}}{{/pages}}
+  {{/if}}
+  {{:assign var="nav_links.link_%d"|args:$nav_number label=$nav_label|trim url=$nav_url|trim page=$nav_page|intval enabled=$nav_enabled|boolval}}
+ {{/if}}
+{{/foreach}}
+{{:assign var="visual_bundle" name=$_POST.visual_name|trim mode=$_POST.theme_style|or:"nature" style=$_POST.visual_style|or:"standard" primary=$_POST.visual_primary accent=$_POST.visual_accent background=$_POST.visual_background surface=$_POST.visual_surface text=$_POST.visual_text on_primary=$_POST.visual_on_primary on_accent=$_POST.visual_on_accent font=$_POST.visual_font radius=$_POST.visual_radius|intval spacing=$_POST.visual_spacing|intval size=$_POST.visual_size|intval hero_height=$_POST.hero_height|intval hero_ratio=$_POST.hero_ratio hero_fit=$_POST.hero_fit layout=$_POST.layout|or:"2col" site_width=$_POST.site_width|or:"standard" news_columns=$_POST.news_columns|or:"3" hue1=$_POST.hue1|intval hue2=$_POST.hue2|intval site_background=$_POST.background|or:"gradient"}}
+{{if $_POST.action == "variant"}}
+ {{:assign visual_presets=$module.config.visual_presets}}
+ {{:assign visual_slot_key="slot_%d"|args:$_POST.visual_slot}}
+ {{:assign var="visual_presets.%s"|args:$visual_slot_key value=$visual_bundle}}
+ {{:save key="config" visual_presets=$visual_presets editor_draft=$visual_bundle editor_slot=$_POST.visual_slot|intval}}
+ {{:assign settings_result="draft"}}
+{{else}}
+	{{:save key="config"
+hero_height=$_POST.hero_height|intval
+hero_ratio=$_POST.hero_ratio
+hero_fit=$_POST.hero_fit
+nav_mode=$_POST.nav_mode
+nav_links=$nav_links
+hide_empty_categories=$checkboxes.hide_empty_categories
+show_petites_annonces=$checkboxes.show_petites_annonces
+show_permanences=$checkboxes.show_permanences
+show_trombinoscope=$checkboxes.show_trombinoscope
+previous_config=$active_snapshot
+editor_draft=null
+visual_style=$_POST.visual_style|or:"standard"
+visual_slot=$_POST.visual_slot|intval
+visual_name=$_POST.visual_name|trim
+visual_primary=$_POST.visual_primary
+visual_accent=$_POST.visual_accent
+visual_background=$_POST.visual_background
+visual_surface=$_POST.visual_surface
+visual_text=$_POST.visual_text
+visual_on_primary=$_POST.visual_on_primary
+visual_on_accent=$_POST.visual_on_accent
+visual_font=$_POST.visual_font
+visual_radius=$_POST.visual_radius|intval
+visual_spacing=$_POST.visual_spacing|intval
+visual_size=$_POST.visual_size|intval
+        hero_mode=$_POST.hero_mode
+        hero_category_id=$_POST.hero_category_id|intval
+        hero_slide_count=$_POST.hero_slide_count|intval
+        hero_interval=$_POST.hero_interval|intval
+        hero_excerpt_length=$_POST.hero_excerpt_length|intval
+        hero_autoplay=$checkboxes.hero_autoplay
+		theme_style=$_POST.theme_style|trim
+hero_title=$_POST.hero_title|trim
+hero_text=$_POST.hero_text|trim
+hero_button=$_POST.hero_button|trim
+hero_page=$_POST.hero_page|trim
+hero_image_url=$_POST.hero_image_url|trim
+login_label=$_POST.login_label|trim
+menu_public_category=$_POST.menu_public_category|intval
+menu_member_category=$_POST.menu_member_category|intval
+external_url=$_POST.external_url|trim
+external_label=$_POST.external_label|trim
+social_url=$_POST.social_url|trim
+social_label=$_POST.social_label|trim
+hero_position=$_POST.hero_position|trim
+home_category=$_POST.home_category|trim
+news_count=$_POST.news_count|intval
+news_columns=$_POST.news_columns|trim
+site_width=$_POST.site_width|trim
+		show_hero=$checkboxes.show_hero
+		show_news=$checkboxes.show_news
+		color1=null
+		color2=null
+		hue1=$_POST.hue1|intval
+		hue2=$_POST.hue2|intval
+		layout=$_POST.layout|trim|or:null
+		background=$_POST.background|trim|or:null
+		show_search=$checkboxes.show_search
+		show_hours=$checkboxes.show_hours
+		show_bookings=$checkboxes.show_bookings
+		show_address=$checkboxes.show_address
+		show_email=$checkboxes.show_email
+		show_phone=$checkboxes.show_phone
+		show_marker=$checkboxes.show_marker
+		contact_form=$checkboxes.contact_form
+		show_login=$checkboxes.show_login
+		home_sticky_uri=$uri|or:null
+	}}
+{{/if}}
+{{/if}}
+	{{:assign settings_saved=true}}
+{{/form}}
+{{if $settings_saved}}{{:redirect to="?result=%s"|args:$settings_result}}{{/if}}
+
+{{if $_GET.result == "draft"}}<p class="block confirm">Variante enregistrée. Le site publié n’a pas changé.</p>
+{{elseif $_GET.result == "applied"}}<p class="block confirm">Modèle et réglages appliqués au site. L’état précédent peut être rétabli.</p>
+{{elseif $_GET.result == "restored"}}<p class="block confirm">Modèle précédent rétabli.</p>{{/if}}
+
+{{:assign editor_config=$module.config}}
+{{if $_GET.result == "draft" && $module.config.editor_draft}}
+ {{:assign draft=$module.config.editor_draft}}
+{{:assign var="editor_config.visual_name" from="draft.name"}}
+{{:assign var="editor_config.theme_style" from="draft.mode"}}
+{{:assign var="editor_config.visual_style" from="draft.style"}}
+{{:assign var="editor_config.visual_primary" from="draft.primary"}}
+{{:assign var="editor_config.visual_accent" from="draft.accent"}}
+{{:assign var="editor_config.visual_background" from="draft.background"}}
+{{:assign var="editor_config.visual_surface" from="draft.surface"}}
+{{:assign var="editor_config.visual_text" from="draft.text"}}
+{{:assign var="editor_config.visual_on_primary" from="draft.on_primary"}}
+{{:assign var="editor_config.visual_on_accent" from="draft.on_accent"}}
+{{:assign var="editor_config.visual_font" from="draft.font"}}
+{{:assign var="editor_config.visual_radius" from="draft.radius"}}
+{{:assign var="editor_config.visual_spacing" from="draft.spacing"}}
+{{:assign var="editor_config.visual_size" from="draft.size"}}
+{{:assign var="editor_config.hero_height" from="draft.hero_height"}}
+{{:assign var="editor_config.hero_ratio" from="draft.hero_ratio"}}
+{{:assign var="editor_config.hero_fit" from="draft.hero_fit"}}
+{{:assign var="editor_config.layout" from="draft.layout"}}
+{{:assign var="editor_config.site_width" from="draft.site_width"}}
+{{:assign var="editor_config.news_columns" from="draft.news_columns"}}
+{{:assign var="editor_config.hue1" from="draft.hue1"}}
+{{:assign var="editor_config.hue2" from="draft.hue2"}}
+{{:assign var="editor_config.background" from="draft.site_background"}}
+ {{:assign var="editor_config.visual_slot" value=$module.config.editor_slot}}
+{{/if}}
+
+{{:form_errors}}
+
+<form method="post" action="">
+
+{{:assign var="layouts"
+	2col="Classique — 2 colonnes"
+	1col="Classique — 1 colonne"
+	wide="Large — 2 colonnes"
+}}
+
+{{:assign var="backgrounds"
+	gradient="Dégradé entre les deux couleurs"
+	white_gradient="Dégradé couleur primaire — blanc"
+	white="Blanc et couleur primaire"
+	gray="Blanc et gris"
+	all_white="Tout blanc"
+	dark="Sombre"
+}}
+
+<style>
+#preview { width:500px; max-width:calc(100% - 2em); float:right; position:sticky; top:16px; margin:1em; border:2px solid #ccc; background:white; }
+#preview-toolbar { display:flex; flex-wrap:wrap; gap:5px; padding:8px; border-bottom:1px solid #ccc; }
+#preview-toolbar button[aria-pressed=true] { outline:2px solid currentColor; }
+#preview-stage { overflow:hidden; position:relative; }
+#preview iframe { border:0; transform-origin:0 0; pointer-events:none; }
+#atelier-ambiances input[type=color] { width:80px; height:38px; cursor:pointer; }
+#atelier-ambiances input[type=range] { max-width:260px; width:100%; }
+#visual-status { font-size:.95em; }
+form [hidden] { display:none!important; }
+.visual-actions { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.nav-row { border:1px solid #ccc; padding:12px; margin:10px 0; }
+.nav-row label { display:block; margin:6px 0; }
+.nav-row input[type=text],.nav-row input[type=url],.nav-row select { width:100%; max-width:100%; box-sizing:border-box; }
+@media(max-width:1100px) { #preview { position:static; float:none; width:100%; max-width:100%; margin:1em 0; } }
+
+/* Commandes de l’atelier : style homogène, inspiré de Laravel. */
+#atelier-ambiances button, #atelier-ambiances a.model-help, #preview-toolbar button {
+ appearance:none; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+ box-sizing:border-box; min-height:40px; margin:0; padding:9px 16px!important;
+ border:1px solid #d1d5db!important; border-radius:8px!important;
+ background:#ffffff!important; background-image:none!important; color:#374151!important;
+ font:600 14px/20px system-ui,-apple-system,"Segoe UI",sans-serif!important;
+ text-decoration:none; text-shadow:none!important; box-shadow:0 1px 2px #0000000d!important;
+ cursor:pointer; transition:background-color .15s,border-color .15s,box-shadow .15s;
+}
+#atelier-ambiances button::before, #preview-toolbar button::before { display:none!important; }
+#atelier-ambiances button:hover, #preview-toolbar button:hover { background:#f3f4f6!important; border-color:#9ca3af!important; }
+#atelier-ambiances button[value="apply"] { background:#4f46e5!important; border-color:#4f46e5!important; color:#fff!important; }
+#atelier-ambiances button[value="apply"]:hover { background:#4338ca!important; border-color:#4338ca!important; }
+#atelier-ambiances button:focus-visible, #preview-toolbar button:focus-visible { outline:3px solid #a5b4fc!important; outline-offset:3px; }
+#atelier-ambiances button:disabled, #preview-toolbar button:disabled { opacity:.5; cursor:default; }
+#atelier-ambiances .visual-actions { gap:10px; align-items:center; margin:18px 0; }
+#preview-toolbar { gap:8px; background:#f9fafb; padding:12px; border-color:#e5e7eb; }
+#preview-toolbar button[aria-pressed="true"] { color:#4338ca!important; background:#eef2ff!important; border-color:#a5b4fc!important; outline:none; }
+#atelier-ambiances #visual-load { margin:8px 0; }
+
+</style>
+
+{{if $config.site_disabled}}
+<p class="block alert">Le site est actuellement désactivé.</p>
+{{else}}
+<div id="preview">
+<div id="preview-toolbar" role="group" aria-label="Format de l’aperçu">
+<button type="button" data-preview-width="1280" data-preview-height="800" aria-pressed="true">Ordinateur</button>
+<button type="button" data-preview-width="768" data-preview-height="1024" aria-pressed="false">Tablette</button>
+<button type="button" data-preview-width="390" data-preview-height="844" aria-pressed="false">Mobile</button>
+</div>
+<div id="preview-stage"><iframe title="Aperçu du site" src="{{$site_url}}?dezoom=1" width="1280" height="800" scrolling="no"></iframe></div>
+</div>
+{{/if}}
+
+
+{{:assign var="editor_modes" nature="Nature" sobre="Sobre" custom="Modèle personnalisé" legacy="Présentation classique"}}
+{{:assign var="editor_fonts" sans="Sans empattement — Arial" serif="Avec empattement — Georgia" verdana="Verdana" trebuchet="Arrondie — Trebuchet MS" nunito="Arrondie — Nunito Sans / Trebuchet MS"}}
+{{:assign var="editor_slots" 1="Modèle 1 — libre" 2="Modèle 2 — libre" 3="Modèle 3 — libre" 4="Modèle 4 — libre" 5="Modèle 5 — libre" 6="Modèle 6 — libre" 7="Modèle 7 — libre" 8="Modèle 8 — libre"}}
+{{#foreach from=$module.config.visual_presets key="preset_key" item="preset"}}
+{{:assign preset_number=$preset_key|replace:"slot_":""|intval}}
+{{if $preset_number > 0 && $preset_number < 9}}{{:assign var="editor_slots.%d"|args:$preset_number value=$preset.name}}{{/if}}
+{{/foreach}}
+<fieldset id="atelier-ambiances" data-hero-sized="{{if $editor_config.hero_height}}true{{else}}false{{/if}}"><legend>Atelier de modèles</legend>
+<p class="active-model"><strong>Modèle actuellement appliqué :</strong> {{if $module.config.theme_style == "custom"}}{{$module.config.visual_name|or:"Modèle personnalisé"}}{{elseif $module.config.theme_style == "sobre"}}Sobre — blanc et vert{{elseif $module.config.theme_style == "legacy"}}Classique Paheko{{else}}Nature — vert et orange{{/if}}</p>
+{{:assign var="editor_models" actuel="Modèle actuel" apeu="Corail épuré" nature="Nature — vert et orange" sobre="Sobre — blanc et vert" ocean="Océan — bleu et sable" terre="Terre — ocre et crème" lavande="Lavande — violet et ivoire" legacy="Classique Paheko" custom="Réglages personnalisés"}}
+<dl>{{:input type="select" name="visual_model" label="Sélectionner un modèle" options=$editor_models default="actuel"}}</dl>
+{{:input type="hidden" name="theme_style" default="nature" source=$editor_config}}
+{{:input type="hidden" name="visual_style" default="standard" source=$editor_config}}
+<details id="visual-options"><summary>Personnaliser et enregistrer une variante</summary><dl>
+{{:input type="select" name="visual_slot" label="Modèle à créer ou personnaliser" options=$editor_slots default=1 source=$editor_config}}
+<dd><button type="button" id="visual-load">Charger ce modèle dans l’aperçu</button></dd>
+{{:input type="text" name="visual_name" label="Nom du modèle" maxlength=40 default="Mon modèle" source=$editor_config}}
+{{:input type="color" name="visual_primary" label="Menu et liens" default="#2e4b65" source=$editor_config}}
+{{:input type="color" name="visual_on_primary" label="Texte du menu" default="#ffffff" source=$editor_config}}
+{{:input type="color" name="visual_accent" label="Bannière et accents" default="#b68f0f" source=$editor_config}}
+{{:input type="color" name="visual_on_accent" label="Texte de la bannière" default="#ffffff" source=$editor_config}}
+{{:input type="color" name="visual_background" label="Fond extérieur" default="#637c39" source=$editor_config}}
+{{:input type="color" name="visual_surface" label="Fond des contenus" default="#faf9f3" source=$editor_config}}
+{{:input type="color" name="visual_text" label="Texte des contenus" default="#243326" source=$editor_config}}
+{{:input type="select" name="visual_font" label="Police" options=$editor_fonts default="sans" source=$editor_config}}
+{{:input type="range" name="visual_size" label="Taille du texte" min=14 max=20 default=16 source=$editor_config}}
+{{:input type="range" name="visual_radius" label="Arrondi des boutons" min=0 max=24 default=4 source=$editor_config}}
+{{:input type="range" name="visual_spacing" label="Espacement des contenus" min=16 max=40 default=28 source=$editor_config}}
+</dl></details>
+<p id="visual-status" role="status" aria-live="polite"></p>
+<div class="visual-actions">
+{{:button type="submit" name="action" value="variant" label="Enregistrer une variante"}}
+{{:button type="submit" name="action" value="apply" label="Appliquer au site" class="main"}}
+{{if $module.config.previous_config}}{{:button type="submit" name="action" value="restore" label="Rétablir le modèle précédent" formnovalidate=true}}{{/if}}
+</div>
+<p class="help">Enregistrer une variante conserve votre création sans changer le site. Appliquer publie tous les réglages de cette page.</p>
+<div class="visual-actions"><button type="button" id="visual-export">Exporter le modèle</button><button type="button" id="visual-import-button">Importer un modèle</button><a class="model-help" href="{{$module.url}}aide-modeles.html">Aide</a><input type="file" id="visual-import" accept=".json,application/json" hidden /></div>
+<button type="button" id="visual-fix-contrast" hidden>Corriger les contrastes</button>
+
+</fieldset>
+<textarea id="visual-presets" hidden aria-hidden="true">{{$module.config.visual_presets|json_encode}}</textarea>
+
+{{if $module.config.hue1 === null}}
+	{{:assign color1=$module.config.color1|or:$config.color1|or:"#999999"|css_hex_extract_hsv}}
+	{{:assign color2=$module.config.color2|or:$config.color2|or:"#333333"|css_hex_extract_hsv}}
+	{{:assign var="module.config.hue1" from="color1.h"}}
+	{{:assign var="module.config.hue2" from="color2.h"}}
+{{/if}}
+
+
+<fieldset>
+	<legend>Configuration du site web</legend>
+	<dl>
+		{{:input type="select" name="layout" label="Disposition sur grand écran" required=true default="2col" options=$layouts help="Sur petit écran (mobile), la disposition reste sur une colonne" source=$editor_config}}
+		{{:input type="hue" name="hue1" label="Couleur primaire" required=false source=$editor_config}}
+		{{:input type="hue" name="hue2" label="Couleur secondaire" required=false source=$editor_config}}
+		{{:input type="select" name="background" options=$backgrounds label="Couleur de fond" required=true source=$editor_config}}
+		<dt>Éléments à afficher sur le site</dt>
+		{{:input type="checkbox" name="show_login" value=1 label="Lien de connexion" source=$editor_config default=1 help="Si coché, affiche un lien pour se connecter à la gestion de l'association."}}
+		{{:input type="checkbox" name="show_search" value=1 label="Formulaire de recherche" source=$editor_config default=1}}
+		{{#module name="openings"}}
+			{{:input type="checkbox" name="show_hours" value=1 label="Horaires d'ouverture" source=$editor_config default=1}}
+		{{/module}}
+		{{#module name="bookings"}}
+			{{:input type="checkbox" name="show_bookings" value=1 label="Accès aux réservations" source=$editor_config default=1}}
+		{{/module}}
+		{{if $config.org_full_address}}
+			{{:input type="checkbox" name="show_address" value=1 label="Adresse physique" source=$editor_config default=1}}
+			{{:input type="checkbox" name="show_marker" value=1 label="Lien pour ouvrir l'adresse sur une carte" source=$editor_config default=1}}
+		{{/if}}
+		{{if $config.org_phone}}
+			{{:input type="checkbox" name="show_phone" value=1 label="Numéro de téléphone" source=$editor_config default=1}}
+		{{/if}}
+		{{if $config.org_email}}
+			{{:input type="checkbox" name="show_email" value=1 label="Adresse e-mail" source=$editor_config default=1}}
+			{{:input type="checkbox" name="contact_form" value=1 label="Formulaire de contact" source=$editor_config default=0}}
+		{{/if}}
+		{{:input type="text" name="home_sticky_uri" label="Identifiant unique de la page à épingler en haut de la page d'accueil" source=$editor_config help="En renseignant ici l'identifiant d'une page du site web, celle-ci restera toujours en premier sur la page d'accueil du site. C'est utile par exemple pour afficher une courte présentation de l'association en permanence."}}
+	</dl>
+</fieldset>
+
+{{:assign var="theme_options" legacy="Affichage actuel" nature="Nature — vert et orange" sobre="Sobre — clair et vert"}}
+{{:assign var="hero_positions" left="Texte à gauche" right="Texte à droite"}}
+{{:assign var="column_options" 2="Deux colonnes" 3="Trois colonnes"}}
+{{:assign var="width_options" standard="Standard — 1100 px" large="Large — 1280 px"}}
+
+{{:assign var="hero_modes" articles="Diaporama des articles d’une rubrique" fixe="Bannière fixe"}}
+{{:assign var="hero_categories" 0="Rubrique des actualités définie ci-dessous"}}
+{{#categories where="w.inherited_status = 2" order="title"}}
+    {{:assign var="hero_categories.%d"|args:$id value="%s — %s"|args:$title:$path}}
+{{/categories}}
+<fieldset id="diaporama"><legend>Bannière et diaporama d’accueil</legend><dl>
+{{:input type="select" name="hero_mode" label="Contenu de la bannière" required=true options=$hero_modes default="articles" source=$editor_config}}
+{{:input type="select" name="hero_category_id" label="Rubrique associée" required=true options=$hero_categories default=0 source=$editor_config}}
+<dd><p class="help">Toutes les rubriques publiques, y compris les sous-rubriques, peuvent être sélectionnées. Les rubriques réservées aux membres ne sont pas proposées pour l’accueil public.</p>
+<p><a class="button" href="{{$admin_url}}web/new.php?type=1&amp;parent=0" rel="noopener">➕ Créer une rubrique dédiée au diaporama</a></p>
+<p class="help">Le formulaire s’ouvre dans cet onglet. Nommez la rubrique « Diaporama », par exemple. Après sa création, revenez ici et rechargez cette page pour la choisir, puis enregistrez. Enregistrez vos réglages en cours avant de recharger. Ajoutez ensuite des articles publiés et leurs images dans cette rubrique.</p></dd>
+{{:input type="number" name="hero_slide_count" label="Nombre maximal d’articles" required=true min=1 max=12 default=5 source=$editor_config}}
+{{:input type="number" name="hero_interval" label="Durée d’affichage d’un article (secondes)" required=true min=3 max=30 default=6 source=$editor_config}}
+{{:input type="number" name="hero_excerpt_length" label="Longueur maximale de l’extrait (caractères)" required=true min=80 max=1000 default=240 source=$editor_config}}
+{{:input type="checkbox" name="hero_autoplay" value=1 label="Faire défiler automatiquement les articles" default=1 source=$editor_config}}
+{{:assign var="hero_ratios" 40="Texte 40 % — image 60 %" 50="Texte 50 % — image 50 %" 60="Texte 60 % — image 40 %"}}
+{{:assign var="hero_fits" contain="Image entière" cover="Image recadrée pour remplir"}}
+{{:input type="number" name="hero_height" label="Hauteur minimale du bandeau (pixels)" min=220 max=650 default=350 source=$editor_config required=true}}
+{{:input type="select" name="hero_ratio" label="Proportions texte / image" options=$hero_ratios default="40" source=$editor_config}}
+{{:input type="select" name="hero_fit" label="Affichage de l’image" options=$hero_fits default="contain" source=$editor_config}}
+
+</dl>
+<p>Le titre et l’extrait de chaque article s’affichent à gauche, sa première image jointe à droite. Sans image, un fond coloré aléatoire est utilisé. Seuls les articles publics déjà publiés sont affichés, du plus récent au plus ancien.</p>
+<p>Le bouton ouvre l’article complet. Les visiteurs peuvent mettre le défilement en pause. Les personnes ayant demandé moins d’animations dans leur navigateur n’ont pas de défilement automatique. Enregistrez pour actualiser l’aperçu.</p>
+</fieldset>
+
+
+{{:assign var="public_menu_categories" 0="Toutes les rubriques publiques à la racine"}}
+{{#categories where="w.inherited_status = 2" order="title"}}{{:assign var="public_menu_categories.%d"|args:$id value="%s — %s"|args:$title:$path}}{{/categories}}
+{{:assign var="member_menu_categories" 0="Ne pas afficher de rubrique membre"}}
+{{#categories private=true order="title"}}{{:assign var="member_menu_categories.%d"|args:$id value="%s — %s"|args:$title:$path}}{{/categories}}
+<fieldset><legend>Navigation et liens</legend><dl>
+{{:assign var="nav_modes" auto="Automatique — rubriques choisies" custom="Menu composé et ordonné manuellement"}}
+{{:input type="select" name="nav_mode" label="Composition du menu public" options=$nav_modes default="auto" source=$editor_config}}
+{{:input type="checkbox" name="hide_empty_categories" value=1 label="Masquer les rubriques sans article public publié" default=0 source=$editor_config}}
+{{:input type="checkbox" name="show_petites_annonces" value=1 label="Afficher le lien Petites annonces si le module est activé" default=1 source=$editor_config}}
+{{:input type="checkbox" name="show_permanences" value=1 label="Afficher le lien Permanences si le module est activé" default=1 source=$editor_config}}
+{{:input type="checkbox" name="show_trombinoscope" value=1 label="Afficher le lien Trombinoscope si le module est activé" default=1 source=$editor_config}}
+
+{{:input type="text" name="login_label" label="Libellé de l’accès membre" default="Espace membre" source=$editor_config}}
+{{:input type="select" name="menu_public_category" label="Rubrique du menu public" options=$public_menu_categories default=0 source=$editor_config}}
+{{:input type="select" name="menu_member_category" label="Rubrique du menu réservé aux personnes connectées" options=$member_menu_categories default=0 source=$editor_config}}
+{{:input type="url" name="external_url" label="Adresse d’un lien complémentaire" source=$editor_config}}
+{{:input type="text" name="external_label" label="Libellé du lien complémentaire" source=$editor_config}}
+{{:input type="url" name="social_url" label="Adresse du réseau social" source=$editor_config}}
+{{:input type="text" name="social_label" label="Libellé du réseau social" source=$editor_config}}
+</dl>
+<details id="navigation-options"><summary>Choisir et ordonner les liens du menu</summary>
+<p>L’accueil reste en premier. Choisissez des pages publiques ou saisissez des liens, puis utilisez les flèches pour les ordonner. Activez le mode manuel ci-dessus pour publier cette liste.</p>
+<div id="navigation-rows">
+{{#foreach count=8 key="nav_index"}}
+{{:assign nav_number="%d+1"|math:$nav_index}}
+{{:assign var="nav_source" from="module.config.nav_links.link_%d"|args:$nav_number}}
+<div class="nav-row" data-nav-row>
+<strong>Lien {{$nav_number}}</strong>
+<button type="button" data-nav-up aria-label="Monter le lien {{$nav_number}}">↑</button><button type="button" data-nav-down aria-label="Descendre le lien {{$nav_number}}">↓</button>
+<label>Page publique <select data-nav-page><option value="0">Lien saisi manuellement</option></select></label>
+<input type="hidden" name="nav_page_{{$nav_number}}" value="{{$nav_source.page|intval}}" data-nav-page-id />
+<label>Libellé <input type="text" name="nav_label_{{$nav_number}}" value="{{$nav_source.label}}" maxlength="80" data-nav-label /></label>
+<label>Adresse <input type="text" name="nav_url_{{$nav_number}}" value="{{$nav_source.url}}" data-nav-url /></label>
+<label><input type="checkbox" name="nav_enabled_{{$nav_number}}" value="1" {{if $nav_source.enabled !== false}}checked{{/if}} data-nav-enabled /> Afficher ce lien</label>
+</div>
+{{/foreach}}
+</div></details>
+{{:assign nav_choices=null}}
+{{#pages where="w.inherited_status = 2" future=false order="title"}}{{:assign var="nav_choices.%d"|args:$id label=$title url=$url id=$id parent=$id_parent type=$type}}{{/pages}}
+<textarea id="navigation-pages" hidden>{{$nav_choices|json_encode}}</textarea>
+<p>Les liens s’ouvrent dans le même onglet. Sans réglage, le menu propose les rubriques publiques à la racine du site. Les liens des modules apparaissent lorsqu’ils sont installés et activés.</p></fieldset>
+
+<fieldset><legend>Thème personnalisé</legend><dl>
+
+{{:input type="text" name="hero_title" label="Titre de la bannière fixe" source=$editor_config}}
+{{:input type="textarea" name="hero_text" label="Texte de la bannière fixe" source=$editor_config}}
+{{:input type="text" name="hero_button" label="Texte du bouton" source=$editor_config}}
+{{:input type="text" name="hero_page" label="Page du bouton de la bannière fixe" source=$editor_config}}
+{{:input type="url" name="hero_image_url" label="Adresse de l’image de la bannière fixe" source=$editor_config help="Facultatif : sans image, un fond coloré est affiché."}}
+{{:input type="select" name="hero_position" label="Position du texte" source=$editor_config options=$hero_positions default="left"}}
+{{:input type="text" name="home_category" label="Identifiant de la catégorie des actualités" source=$editor_config default="actualites"}}
+{{:input type="number" name="news_count" label="Nombre d’actualités" source=$editor_config min=1 max=12 default=6}}
+{{:input type="select" name="news_columns" label="Colonnes des actualités" source=$editor_config options=$column_options default="3"}}
+{{:input type="select" name="site_width" label="Largeur du site" source=$editor_config options=$width_options default="standard"}}
+{{:input type="checkbox" name="show_hero" value=1 default=1 label="Afficher la bannière d’accueil" source=$editor_config}}
+{{:input type="checkbox" name="show_news" value=1 default=1 label="Afficher les actualités" source=$editor_config}}
+</dl><p>Le logo se règle dans la personnalisation générale de Paheko. Le bouton utilise l’identifiant d’une page publiée. Les modèles Nature et Sobre utilisent les couleurs primaire et secondaire ci-dessous pour leurs accents.</p></fieldset>
+
+<p class="submit">
+	{{:button type="submit" name="action" value="apply" label="Appliquer au site" shape="right" class="main"}}
+</p>
+
+<script src="{{$root_uri}}m/theme_personnalise/ambiance-editor.js?v=modeles-1" defer></script>
+
+</form>
+
+{{:admin_footer}}
